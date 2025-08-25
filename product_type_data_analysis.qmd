@@ -1,0 +1,513 @@
+---
+title: "ETW Assignment 2"
+author: "Nashmia Shakeel"
+format: 
+  html:
+    toc: True
+editor: visual
+execute:
+  message: False
+  warning: False
+---
+
+# Student Name: Nashmia Shakeel
+
+# Student ID: 34091904
+
+### Loading Libraries
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(readr)
+options(tibble.width = Inf)
+```
+
+### Loading Respective Datasets and checking number of variables and observations for each dataset
+
+```{r}
+profit = read.csv("profit_data.csv") # loading profit_dataset
+product = read.csv("product_data.csv") # loading product_dataset
+location = read.csv("location_data.csv") # loading location_dataset
+
+```
+
+```{r}
+print("The number of rows in profit dataset before any joining are")
+nrow(profit)
+print("The number of columns in profit dataset before any joining are")
+ncol(profit)
+```
+
+```{r}
+print("The number of rows in product dataset before any joining are")
+nrow(product)
+print("The number of columns in product dataset before any joining are")
+ncol(product)
+```
+
+```{r}
+print("The number of rows in location dataset before any joining are")
+nrow(location)
+print("The number of columns in location dataset before any joining are")
+ncol(location)
+```
+
+## **1.Analysis of Product Types by City in the US (10 Marks)**
+
+### Select only the products that have purchase location details
+
+```{r}
+joined_1 = inner_join(product, location, by = "Order.ID") # joining product and location datasets together 
+```
+
+```{r}
+print("The number of rows after joining product and location dataset together in joined_1 datset are")
+nrow(joined_1)
+print("The number of columns after joining product and location dataset together in joined_1 datset are")
+ncol(joined_1)
+```
+
+```{r}
+head(joined_1)
+```
+
+### Analyze the distribution of product types across different cities in the US.
+
+### 
+
+```{r}
+product_names = unique(joined_1$Product) # checking the unique entries of product's names
+product_names
+```
+
+```{r}
+# catergorsing different products into their types based on their specific details
+phone <- c("iPhone", "Google Phone", "Vareebadd Phone")
+monitor <- c("34in Ultrawide Monitor", "27in FHD Monitor", "27in 4K Gaming Monitor", "20in Monitor")
+TV <- c("Flatscreen TV")
+washing <- c("LG Washing Machine")
+battery <- c("AA Batteries (4-pack)", "AAA Batteries (4-pack)")
+laptop <- c("Macbook Pro Laptop", "ThinkPad Laptop")
+dryer <- c("LG Dryer")
+cable <- c("USB-C Charging Cable", "Lightning Charging Cable")
+headphones <- c("Bose SoundSport Headphones", "Apple Airpods Headphones", "Wired Headphones")
+
+size <- nrow(joined_1)
+product_type <- vector("character", length = size)
+
+for (i in 1:size) { 
+  if (joined_1$Product[i] %in% phone) {
+    product_type[i] <- "Phone"
+  } else if (joined_1$Product[i] %in% monitor) {
+    product_type[i] <- "Monitor"
+  } else if (joined_1$Product[i] %in% TV) {
+    product_type[i] <- "TV"
+  } else if (joined_1$Product[i] %in% washing) {
+    product_type[i] <- "Washing Machine"
+  } else if (joined_1$Product[i] %in% battery) {
+    product_type[i] <- "Batteries"
+  } else if (joined_1$Product[i] %in% laptop) {
+    product_type[i] <- "Laptop"
+  } else if (joined_1$Product[i] %in% dryer) {
+    product_type[i] <- "Dryer"
+  } else if (joined_1$Product[i] %in% cable) {
+    product_type[i] <- "Cable"
+  } else if (joined_1$Product[i] %in% headphones) {
+    product_type[i] <- "Headphones"
+  }
+}
+# adding product_type column to the dataset 
+joined_1$product_type <- product_type
+head(joined_1)
+```
+
+```{r}
+print("The number of rows of joined_1 dataset after creating a new column to represent the types of the products")
+nrow(joined_1)
+print("The number of columns of joined_1 dataset after creating a new column to represent the types of the products")
+ncol(joined_1)
+```
+
+```{r}
+joined_1 = joined_1 %>%
+  separate(Purchase.Address,into = c("Street","City","City_code"),sep = ",") # seperating Purchase Address into 3 different columns Street, City, City_code
+head(joined_1)
+```
+
+```{r}
+print("The number of rows of joined_1 dataset after creating a new columns to represent cities,streets and city codes")
+nrow(joined_1)
+print("The number of columns of joined_1 dataset after creating a new columns to represent cities,streets and city codes")
+ncol(joined_1)
+```
+
+```{r}
+city_product = joined_1 %>%
+  count(City,product_type) # count the number of times a specific city and a specific product_type appears 
+head(city_product)
+nrow(city_product)
+```
+
+### Create a suitable visualization to support your analysis and provide an interpretation of the results
+
+```{r}
+# creating a bar chart with facets for different product types
+# please open the graph fully to view it properly
+ggplot(city_product) +
+  geom_bar(aes(x = City,y = n,fill=product_type), 
+                 stat="identity",position="dodge")+
+  labs(title="Bar Chart of Distribution of Product Types by City Names ", x="City", y="Number of Products Sold Across the Cities")+
+  facet_wrap(~ product_type, ncol = 2,scales = "free")+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+ 
+
+```
+
+### Interpretation of the Bar Chart
+
+This bar chart illustrates how different product categories's sales are distributed among US cities. Most sales for all categories have been recorded in San Francisco followed by Los Angeles and New York.
+
+Batteries have made the most sales in San Francisco followed by Los Angeles and New York. However it has the lowest sales record in Austin and Portland and approximately the same amount of sales in cities like Seattle, Dallas, Atlanta while a slight peak of sales record is observed in Boston in comparison to Seattle, Dallas, Atlanta. Hence this exhibits high demand of batteries in cities like San Francisco, Los Angeles and New York and lowest demand for them in Austin and Portland.
+
+Cables have made the most sales in San Francisco followed by Los Angeles and New York. However it has the lowest sales record in Austin and Portland and approximately the same amount of sales in cities like Seattle, Dallas, Atlanta while a slight peak of sales record is observed in Boston in comparison to Seattle, Dallas, Atlanta. Hence this exhibits high demand of cables in cities like San Francisco, Los Angeles and New York and lowest demand for them in Austin and Portland.
+
+Dryers have made the most sales in San Francisco followed by Los Angeles and New York. However it has the lowest sales record in Dallas and Portland and approximately the same amount of sales in cities like Seattle, Austin, Atlanta and Boston. Hence this exhibits high demand of dryers in cities like San Francisco, Los Angeles and New York and lowest demand for them in Dallas and Portland.
+
+Headphones have made the most sales in San Francisco followed by Los Angeles and New York. However it has the lowest sales record in Austin and Portland and approximately the same amount of sales in cities like Seattle, Dallas, Atlanta while a slight peak of sales record is observed in Boston in comparison to Seattle, Dallas, Atlanta.Hence this exhibits high demand of Headphones in cities like San Francisco, Los Angeles and New York and lowest demand for them in Austin and Portland.
+
+Laptop have made the most sales in San Francisco followed by Los Angeles and New York. However it has the lowest sales record in Austin and Portland and approximately the same amount of sales in cities like Seattle, Dallas, Atlanta while a slight peak of sales record is observed in Boston in comparison to Seattle, Dallas, Atlanta. Hence this exhibits high demand of Laptop in cities like San Francisco, Los Angeles and New York and lowest demand for them in Austin and Portland.
+
+Monitor have made the most sales in San Francisco followed by Los Angeles and New York. However it has the lowest sales record in Austin and Portland and approximately the same amount of sales in cities like Seattle, Dallas, Atlanta while a slight peak of sales record is observed in Boston in comparison to Seattle, Dallas, Atlanta. Hence this exhibits high demand of Monitor in cities like San Francisco, Los Angeles and New York and lowest demand for them in Austin and Portland.
+
+Phone have made the most sales in San Francisco followed by Los Angeles and New York. However it has the lowest sales record in Austin and Portland and approximately the same amount of sales in cities like Seattle, Dallas, Atlanta while a slight peak of sales record is observed in Boston in comparison to Seattle, Dallas, Atlanta. Hence this exhibits high demand of Phone in cities like San Francisco, Los Angeles and New York and lowest demand for them in Austin and Portland.
+
+TV have made the most sales in San Francisco followed by Los Angeles and New York. However it has the lowest sales record in Austin and Portland and approximately the same amount of sales in cities like Seattle, Dallas, Atlanta while a slight peak of sales record is observed in Boston in comparison to Seattle, Dallas, Atlanta. Hence this exhibits high demand of TV in cities like San Francisco, Los Angeles and New York and lowest demand for them in Austin and Portland.
+
+Washing Machine have made the most sales in San Francisco followed by Los Angeles and New York. However it has the lowest sales record in Austin and Portland and approximately the same amount of sales in cities like Dallas, Atlanta and a slight peak of sales in Seattle as compared to Dallas and Atlanta. While a slight peak of sales record is observed in Boston in comparison to Seattle Dallas, Atlanta. Hence this exhibits high demand of Washing Machine in cities like San Francisco, Los Angeles and New York and lowest demand for them in Austin and Portland.
+
+From the above bar chart u can also tell that most sold type of electronics across cities are Headphones, Cables and Batteries indicating a wide consumer base while the product types with the lowest sales are Washing Machine and Dryer and TV suggesting a lower demand for these products. Cities like San Francisco, Los Angeles and New York have the highest sales record of all types of electronics hence it can be said that the demand in these areas for these electronic products is very high due to the high dependency on electronics and technology and high purchasing power. Other cities like Atlanta, Austin, Boston, Portland, Seattle, Dallas have less sales records which might be due to lower demand and market penetration.
+
+## **2. Analysis of Product Types for Higher Quantity Orders and Survey on Electronics Usage (10 Marks)**
+
+### Filter the dataset to include only products where the quantity ordered is greater than 1
+
+```{r}
+product_names_3 = unique(profit$Quantity.Ordered) # checking what quantities are present in the dataset 
+product_names_3
+```
+
+```{r}
+filtered_profit = profit %>%
+   filter(Quantity.Ordered > 1) # creating a data frame with products whose quantities are greater than 1
+joined_2= left_join(filtered_profit, product, by ="Order.ID") # joing the profit and product dataset 
+head(joined_2)
+```
+
+```{r}
+product_names_4 = unique(joined_2$Quantity.Ordered) # checking if 1 quantity has been removed
+product_names_4
+```
+
+```{r}
+print("The number of rows of joined_2 dataset after filtering out Quanity.Ordered for quanity greater than 1")
+nrow(joined_2)
+print("The number of columns of joined_2 dataset after filtering out Quanity.Ordered for quanity greater than 1")
+ncol(joined_2)
+```
+
+### Analyze the types of products in this subset using an appropriate visualization and interpret the results.
+
+```{r}
+product_names_2 = unique(joined_2$Product) # checking the unique entries of product's names
+product_names_2
+```
+
+```{r}
+# catergorsing different products into their types based on their specific details
+phone <- c("iPhone", "Google Phone", "Vareebadd Phone")
+monitor <- c("34in Ultrawide Monitor", "27in FHD Monitor", "27in 4K Gaming Monitor", "20in Monitor")
+TV <- c("Flatscreen TV")
+washing <- c("LG Washing Machine")
+battery <- c("AA Batteries (4-pack)", "AAA Batteries (4-pack)")
+laptop <- c("Macbook Pro Laptop", "ThinkPad Laptop")
+dryer <- c("LG Dryer")
+cable <- c("USB-C Charging Cable", "Lightning Charging Cable")
+headphones <- c("Bose SoundSport Headphones", "Apple Airpods Headphones", "Wired Headphones")
+
+size <- nrow(joined_2)
+product_type <- vector("character", length = size)
+
+for (i in 1:size) { 
+  if (joined_2$Product[i] %in% phone) {
+    product_type[i] <- "Phone"
+  } else if (joined_2$Product[i] %in% monitor) {
+    product_type[i] <- "Monitor"
+  } else if (joined_2$Product[i] %in% TV) {
+    product_type[i] <- "TV"
+  } else if (joined_2$Product[i] %in% washing) {
+    product_type[i] <- "Washing Machine"
+  } else if (joined_2$Product[i] %in% battery) {
+    product_type[i] <- "Batteries"
+  } else if (joined_2$Product[i] %in% laptop) {
+    product_type[i] <- "Laptop"
+  } else if (joined_2$Product[i] %in% dryer) {
+    product_type[i] <- "Dryer"
+  } else if (joined_2$Product[i] %in% cable) {
+    product_type[i] <- "Cable"
+  } else if (joined_2$Product[i] %in% headphones) {
+    product_type[i] <- "Headphones"
+  }
+}
+# adding product_type column to the dataset 
+joined_2$product_type <- product_type
+head(joined_2)
+```
+
+```{r}
+print("The number of rows of joined_2 dataset after creating a new column to represent the types of the products")
+nrow(joined_2)
+print("The number of columns of joined_2 dataset after creating a new column to represent the types of the products")
+ncol(joined_2)
+```
+
+```{r}
+# Counting different types everytime they appear and sorting them in descending order
+product_count <- joined_2 %>%
+  count(product_type) %>%
+  arrange(desc(n))
+product_count
+```
+
+```{r}
+# creating a bar chart 
+# please open the graph fully to view it properly
+ggplot(product_count) +
+  geom_bar(aes(x = product_type,y = n), 
+                 stat="identity",position="dodge",width=0.7,fill="blue")+
+  labs(title="Bar Chart of Distribution of Product Types with Quantity Ordered above 1 ", x=" Product_type", y="Number of orders" )+
+  theme_minimal()
+
+  
+```
+
+### Interpretation of Bar Chart:
+
+This bar chart shows how various product types are distributed when more than one quantity is ordered.
+
+Batteries are the most ordered, with more than 12,000 orders exhibiting that they are the most frequently ordered in bulk (with quantity greater than 1). This suggests a high demand for batteries as they are needed in large quantity in various businesses like tech companies, Electric Utility Company ect and households. They are also fairly cheap hence people can afford buying them in bulks.
+
+Cables are the second most ordered product_type with around 3,000 orders. This indicates that consumers usually buy them in large quanties as they can be used for various purposes like setting up a TV. People might also prefer to buy them in bulk in order to save on delivery cost as they would have to pay the delivery cost again and again if they order cables separately.
+
+Headphones also have a moderate number of orders around 1800 orders but still much lower orders than batteries and cables. This suggests that people buy them in bulk as people can use headphones with various tech products like phones and laptops which is why they might prefer to have more than one pair of headphones.
+
+Product types like Washing Machine, TV, Phone, Monitor, Laptop, Dryer and washing machine have very few orders with quantity ordered greater than 1. This is because people prefer to buy such products separately instead of buying them in bulk because of their size and high cost which doesn't make them really affordable to buy more than 1.
+
+This bar chart shows a clear pattern that small and relatively inexpensive products like batteries and cables and headphones are more likely to be ordered in larger quantities on the other hand high cost and massive in size products are not ordered much in bulk.
+
+### Additionally, conduct a survey on the usage of electronics in the US using any open-source platform. Discuss potential factors contributing to the higher quantities of these products being purchased and justify your findings based on the survey outcomes
+
+Reference for the article:
+
+Mordor Intelligence. (n.d.). United States household battery market - growth, trends, and forecasts (2024 - 2029). Mordor Intelligence. Retrieved September 24, 2024, from <https://www.mordorintelligence.com/industry-reports/united-states-household-battery-market>
+
+1\) Increased use of electronics
+
+The main applications for batteries are in the electronic gadgets such as cameras, cellphones and since due to an increasing population the usage of electronic devices is expected to rise. The demand for batteries will also increase leading to an increase in the sales of the batteries as these batteries will be needed to construct these smart devices. This is supported by the growing number of smart phone users in the US which was 298 million in 2021. (Mordor Intelligence, 2024)
+
+2\) Affordability:
+
+Lithium ion is one of the most common battery.Lithium ion batteries prices decreased from USD 176 per kWh in 2018 to USD 132 per kWh in 2021 and are expected to keep decreasing. Hence these reduced prices attract more consumers to not only buy batteries but also buy them in bulk. (Mordor Intelligence, 2024)
+
+3\) Government Support
+
+The U.S government has also given 2.5 billion loan to Ultium Cell LLC for manufacturing Lithium ion facilities. Hence this will lead to improvement in battery technology which will improve the quality of these batteries. Hence consumers will be attracted to spend on batteries with good quality and low price . (Mordor Intelligence, 2024)
+
+Hence these factors contribute to the increase in the sales of Batteries in the US.
+
+## **3. Turnover Analysis of Different Product Types in 2019 (10 Marks)**
+
+### Create a new data frame containing the columns: Order Date, Product EAN, Product Name, and Turnover. 
+
+```{r}
+joined_3=full_join(product, profit, by = "Product_ean")# joining product and profit datasets to create a new data frame
+head(joined_3)
+```
+
+```{r}
+print("The number of rows after joining product and profit dataset together in joined_4 datset are")
+nrow(joined_3)
+print("The number of columns after joining product and profit dataset together in joined_4 datset are")
+ncol(joined_3)
+```
+
+```{r}
+joined_4 <- joined_3 %>%
+  select('Order.Date', 'Product_ean', 'Product', 'turnover')# removing columns other than Product_ean, Product, Order.Date, turnover
+head(joined_4)
+```
+
+```{r}
+print("The number of rows after selecting only Order.Date, Product_ean, Product, Turnover in joined_4")
+nrow(joined_4)
+print("The number of columns after selecting only Order.Date, Product_ean, Product, Turnover in joined_4")
+ncol(joined_4)
+```
+
+```{r}
+# removing missing values from each column
+joined_4 <- joined_4[!is.na(joined_4$Product), ]
+joined_4 <- joined_4[!is.na(joined_4$turnover), ]
+joined_4 <- joined_4[!is.na(joined_4$Product_ean), ]
+joined_4 <- joined_4[!is.na(joined_4$Order.Date), ]
+head(joined_4)
+```
+
+```{r}
+print("The number of rows after removing NA values")
+nrow(joined_4)
+print("The number of columns after removing NA values")
+ncol(joined_4)
+```
+
+```{r}
+# seperating Order.Date into Year, Month and Date 
+joined_4 = joined_4 %>%
+  separate(Order.Date,into = c("Date","Month","Year"),sep = "/")
+head(joined_4)
+```
+
+```{r}
+print("The number of rows after seperating Date, Month and Year")
+nrow(joined_4)
+print("The number of columns after seperating Date, Month and Year")
+ncol(joined_4)
+```
+
+```{r}
+# checking the unique number of years in Year column 
+product_names_9 = unique(joined_4$Year)
+product_names_9
+```
+
+```{r}
+# Removing rows with year 2020
+joined_4 <- joined_4 %>%
+  filter(Year != "2020")
+```
+
+```{r}
+print("The number of rows after removing row with years other than 2019")
+nrow(joined_4)
+print("The number of  after removing row with years other than 2019")
+ncol(joined_4)
+```
+
+```{r}
+# checking years after removing 2020 year to make sure that we only have entries of 2019 in our dataset 
+product_names_10 = unique(joined_4$Year)
+product_names_10
+```
+
+### Analyze the turnover of different product types from January to December 2019 using an appropriate visualization
+
+```{r}
+# checking unique names of products 
+product_names_11 = unique(joined_4$Product)
+product_names_11
+```
+
+```{r}
+# catergorsing different products into their types based on their specific details
+phone <- c("iPhone", "Google Phone", "Vareebadd Phone")
+monitor <- c("34in Ultrawide Monitor", "27in FHD Monitor", "27in 4K Gaming Monitor", "20in Monitor")
+TV <- c("Flatscreen TV")
+washing <- c("LG Washing Machine")
+battery <- c("AA Batteries (4-pack)", "AAA Batteries (4-pack)")
+laptop <- c("Macbook Pro Laptop", "ThinkPad Laptop")
+dryer <- c("LG Dryer")
+cable <- c("USB-C Charging Cable", "Lightning Charging Cable")
+headphones <- c("Bose SoundSport Headphones", "Apple Airpods Headphones", "Wired Headphones")
+
+size <- nrow(joined_4)
+product_type <- vector("character", length = size)
+
+for (i in 1:size) { 
+  if (joined_4$Product[i] %in% phone) {
+    product_type[i] <- "Phone"
+  } else if (joined_4$Product[i] %in% monitor) {
+    product_type[i] <- "Monitor"
+  } else if (joined_4$Product[i] %in% TV) {
+    product_type[i] <- "TV"
+  } else if (joined_4$Product[i] %in% washing) {
+    product_type[i] <- "Washing Machine"
+  } else if (joined_4$Product[i] %in% battery) {
+    product_type[i] <- "Batteries"
+  } else if (joined_4$Product[i] %in% laptop) {
+    product_type[i] <- "Laptop"
+  } else if (joined_4$Product[i] %in% dryer) {
+    product_type[i] <- "Dryer"
+  } else if (joined_4$Product[i] %in% cable) {
+    product_type[i] <- "Cable"
+  } else if (joined_4$Product[i] %in% headphones) {
+    product_type[i] <- "Headphones"
+  }
+}
+# adding product_type column to the dataset 
+joined_4$product_type <- product_type
+head(joined_4)
+```
+
+```{r}
+# calculating the turnover of each product type in every month of 2019 
+monthly_turnover <- joined_4 %>%
+  group_by(product_type, Month) %>%
+  summarise(Turnover = sum(turnover))
+head(monthly_turnover)
+nrow(monthly_turnover)
+```
+
+```{r}
+# creating a line graph for each product type's turnover across different months with facets
+# please open the graph fully to view it properly
+monthly_turnover$Month <- as.numeric(monthly_turnover$Month)
+monthly_turnover$Month <- factor(monthly_turnover$Month, 
+                                 levels = c(1,2,3,4,5,6,7,8,9,10,11,12), 
+                                 labels = c("Jan", "Feb", "Mar", "Apr", "May", 
+                                            "Jun", "Jul", "Aug", "Sep", "Oct", 
+                                            "Nov", "Dec"))
+
+ggplot(monthly_turnover, aes(x = Month, y = Turnover, color = product_type, group= product_type)) +
+  geom_line() + 
+  geom_point() +
+  facet_wrap(~ product_type, ncol = 2,scales = "free") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Monthly Turnover by Product Type", y = "Turnover", x = "Month")
+```
+
+### Interpretation of Line graph:
+
+The line graph displays the monthly turnover for different product types from January to December.
+
+Batteries had the highest turnover in December also significant increases in turnover can be observed in April and October. While the lowest amount of Turnover can be observed in months like January and August. Highest turnover can be witnessed in December because it is the holiday season hence consumer spending is increased. Peaks in April and October are observed because they are respective Spring and autumn season in which people are more inclined to spend money on batteries for cameras, heaters for upcoming winters etc. Months such as January and August are off seasons hence they witness lower consumer spending on products like Batteries.
+
+Cable had the highest turnover in December also significant increases in turnover can be observed in April and October. While the lowest amount of Turnover can be observed in months like January, August and September. Highest turnover can be witnessed in December because it is the holiday season hence consumer spending is increased. Peaks in April and October are observed because they are respective spring and autumn season in which people are more inclined to spend money on cables because of spring promotions, for setting up home entertainment systems etc. Months such as January ,August and September are off seasons hence they witness lower consumer spending on products like Cables.
+
+Dryer had the highest turnover in December also significant increases in turnover can be observed in May and February. While the lowest amount of Turnover can be observed in months like January, November. Highest turnover can be witnessed in December because it is the holiday season hence consumer spending is increased. Peaks in May and February are observed because they are respective spring and winter season in which people are more inclined to spend money on dryers in order to dry their hair or clothes because of sweat or dampness. Months such as January and November are off seasons hence they witness lower consumer spending on products like Dryers.
+
+Headphones had the highest turnover in December also significant increases in turnover can be observed in April and October. While the lowest amount of Turnover can be observed in months like January and September. Highest turnover can be witnessed in December because it is the holiday season hence consumer spending is increased. Peaks in April and October are observed because they are respective spring and autumn season in which people are more inclined to spend money on headphones due to spring promotions, and because many tech companies release new headphones in October etc. Months such as January and September are off seasons hence they witness lower consumer spending on products like Headphones.
+
+Laptops had the highest turnover in December also significant increases in turnover can be observed in April and October. While the lowest amount of Turnover can be observed in months like January and August. Highest turnover can be witnessed in December because it is the holiday season hence consumer spending is increased. Peaks in April and October are observed because they are respective spring and autumn season in which people are more inclined to spend money on Laptops due to spring sales and discounts, and because many tech companies release new laptop models in October etc. Months such as January and August are off seasons hence they witness lower consumer spending on products like Laptop.
+
+Monitor had the highest turnover in December also significant increases in turnover can be observed in October. While the lowest amount of Turnover can be observed in months like January and September. Highest turnover can be witnessed in December because it is the holiday season hence consumer spending is increased. Peak in October is observed because it is a autumn season in which people are more inclined to spend money on monitors due because many tech companies release new monitors models in October which attracts consumers. Months such as January and September are off seasons hence they witness lower consumer spending on products like Monitor.
+
+Phone had the highest turnover in December also significant increases in turnover can be observed in May and October. While the lowest amount of Turnover can be observed in month like September. Highest turnover can be witnessed in December because it is the holiday season hence consumer spending is increased. Peaks in May and October are observed because they are respective spring and autumn season in which people are more inclined to spend money on phones due to spring sales and discounts, and because many tech companies release new phone models in October which attracts more consumer spending. Month like September sees a decline in consumer spending on phones because people hold off buying phones until new models are released in October.
+
+TV had the highest turnover in April also significant increases in turnover can be observed in July and October. While the lowest amount of Turnover can be observed in months like September and February. Highest turnover can be witnessed in April because it is the spring season in which spring discounts are offered hence consumer spending is increased. Peaks in July and October are observed because they are respective summer and autumn season in which people are more inclined to spend money on TV due to summer sales and discounts, and because many tech companies release new TV models in October which attracts more consumer spending. Months such as February and September are off seasons hence they witness lower consumer spending on products like TV.
+
+Washing Machine had the highest turnover in June also significant increases in turnover can be observed in December. While the lowest amount of Turnover can be observed in months like August and January. Highest turnover can be witnessed in June because it is the summer season in which summer discounts are offered hence consumer spending is increased. Peaks in December are observed because it is the holiday season hence consumer spending is increased. Months such as August and January are off seasons hence they witness lower consumer spending on products like Washing Machine.
+
+Overall the product types that brought in the most turnover throughout the months were headphones, cables and batteries and the product types that brought in the least turnover are TV and washing machine. Headphones, cables, batteries brought in the most revenue during December which shows that consumers are more likely to spend money during the peak holiday season specially on small and affordable electronics. Turnover is highest in December throughout different product types except washing machine and TV which most people prefer to buy in June and April in summer and spring sales instead mainly because during these times there are high discounts on electronics that are massive in size like Washing machine and TV. January, September and August are the months were most of the product types have lower turnovers mainly because these months are considered off seasons months where consumers do not spend much money on electronics. Hence it can be said that more consumer spending can be observed in months like December, April and June while less consumer spending is observed in January, September and August. Also most turnover is generated by the sales of affordable and small electronics like headphones, cables and batteries in comparison to large and high cost electronics like TV and Washing Machine.
